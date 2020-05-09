@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="roulette.css">
+    <title>ルーレット</title>
+    <script type="module">
+import * as lib from "./roulette.js";
+
+window.addEventListener('load', ev=>{
+    /** @type {HTMLCanvasElement} */
+    const rouletteCanvas = document.getElementById('rouletteCanvas');
+
+    const resultView = document.getElementById('resultView');
+    /** @type {HTMLTextAreaElement} */
+    const dataInput = document.getElementById('dataInput');
+    /** @type {HTMLButtonElement} */
+    const reflectButton = document.getElementById('reflectButton');
+    /** @type {HTMLSelectElement} */
+    const resourceSelector = document.getElementById('resourceSelector');
+
+    const loadingCover = document.getElementById('loadingCover');
+    /** @type {HTMLButtonElement} */
+    const resEditButton = document.getElementById('resEditButton');
+    /** @type {HTMLButtonElement} */
+    const shuffleButton = document.getElementById('shuffleButton');
+
+    const fixedPopup = document.getElementById('fixedPopup');
+    const fixedPopupContent = document.getElementById('fixedPopupContent');
+
+    rouletteCanvas.width = document.body.clientWidth;
+    rouletteCanvas.height = Math.min(window.innerWidth, window.innerHeight * 0.9);
+
+    const renderer = lib.renderer(rouletteCanvas, resultView);
+
+    let animationActivated = false;
+    let enterPressed = false;
+    let mouseClicked = false;
+    let lastTime = Date.now();
+
+    const update = ()=>{
+        if(animationActivated){
+            const nowMillis = Date.now();
+            const pastMillis = nowMillis - lastTime;
+            lastTime = nowMillis;
+            const dt = pastMillis / 1000;
+
+            const pressed = enterPressed || mouseClicked;
+
+            if(renderer.update(dt, pressed)){
+                requestAnimationFrame(update);
+            }else{
+                animationActivated = false;
+            }
+        }
+    };
+
+    const startAnimation = () => {
+        if(!animationActivated){
+            animationActivated = true;
+            lastTime = Date.now();
+            update();
+        }
+    };
+
+    renderer.setFixListener(name => {
+        if(name){
+            fixedPopupContent.innerText = name;
+        }else{
+            fixedPopupContent.innerText = 'はずれ';
+        }
+        fixedPopup.style.display = 'block';
+    });
+
+    fixedPopup.addEventListener('click', ev=>{
+        fixedPopup.style.display = 'none';
+    });
+
+    rouletteCanvas.addEventListener('mousedown', ev=>{
+        mouseClicked = true;
+        startAnimation();
+        // ev.preventDefault();
+    }, );
+    rouletteCanvas.addEventListener('mouseup', ev => {
+        mouseClicked = false;
+        // ev.preventDefault();
+    })
+    rouletteCanvas.addEventListener('keydown', ev=>{
+        if(ev.key == 'Enter' || ev.key == ' '){
+            enterPressed = true;
+            startAnimation();
+            ev.preventDefault();
+        }
+    });
+    rouletteCanvas.addEventListener('keyup', ev=>{
+        if(ev.key == 'Enter' || ev.key == ' '){
+            enterPressed = false;
+            ev.preventDefault();
+        }
+    });
+
+    reflectButton.addEventListener('click', ev=>{
+        const input = dataInput.value;
+        if(!input){
+            console.info('invalid input:', input);
+            alert('データを入力して下さい');
+            return;
+        }
+        const list = input.split("\n").filter(s => s);
+        if(list.length <= 1){
+            console.info('valid input:', list);
+            alert('複数のデータを入力してください');
+            return;
+        }
+        renderer.setData(list);
+    });
+
+    /**
+     * @param {string} path
+     */
+    const loadResource = (path) => {
+        loadingCover.style.display = "block";
+        lib.loadJSON(path, 'GET')
+            .then(list => {
+                loadingCover.style.display = "none";
+                console.log(path, list);
+                lib.shuffle(list);
+                renderer.setData(list);
+            })
+            .catch(e => {
+                loadingCover.style.display = "none";
+                console.warn(e);
+                alert('リソースの読み込みに失敗しました');
+            });
+    };
+
+    /**
+     * @param {string} path
+     * @param {string} name
+     */
+    const addResourceOption = (path, name) => {
+        const op = document.createElement('option');
+        op.value = path;
+        op.innerText = name;
+        resourceSelector.appendChild(op);
+    };
+
+    lib.loadJSON('./lists.json', 'GET')
+        .then(obj => {
+            console.log('loaded lists.json', obj);
+            const singles = obj['singleLists'];
+            if(singles){
+                for(let path in singles){
+                    addResourceOption(path, singles[path]);
+                }
+            }
+        })
+        .catch(e => {
+            console.warn('Failed to load lists.json', e);
+        });
+
+    const updateSelectionState = () => {
+        const path = resourceSelector.value;
+        if(path){
+            dataInput.disabled = true;
+            reflectButton.disabled = true;
+            resEditButton.disabled = false;
+            loadResource(path);
+        }else{
+            dataInput.disabled = false;
+            reflectButton.disabled = false;
+            resEditButton.disabled = true;
+        }
+    }
+    resourceSelector.addEventListener('change', ev=>{
+        updateSelectionState();
+    });
+    updateSelectionState();
+
+    resEditButton.addEventListener('click', ev => {
+        const path = resourceSelector.value;
+        if(!path) return;
+        loadingCover.style.display = "block";
+        lib.loadJSON(path, 'GET')
+            .then(list => {
+                loadingCover.style.display = "none";
+                console.log(path, list);
+                dataInput.value = list.join('\n');
+                resourceSelector.value = '';
+                updateSelectionState();
+            })
+            .catch(e => {
+                loadingCover.style.display = "none";
+                console.warn(e);
+                alert('リソースの読み込みに失敗しました');
+            });
+    });
+
+    shuffleButton.addEventListener('click', ev => {
+        if(confirm('入力内容をシャッフルしますか？')){
+            const arr = dataInput.value.split('\n').filter(s => s);
+            lib.shuffle(arr);
+            dataInput.value = arr.join('\n');
+        }
+    });
+
+    startAnimation();
+
+    dataInput.value = "0123456789".split('').map(n=>'#'+n).join('\n');
+    reflectButton.click();
+
+    loadingCover.style.display = "none";
+});
+
+    </script>
+</head>
+<body>
+    <div id="resultView">-</div>
+    <canvas id="rouletteCanvas" tabindex="0"></canvas>
+    <div class="inputPanel">
+        ソース:<select id="resourceSelector"><option value="">カスタム</option></select>
+        <button id="resEditButton">編集</button>
+        <br>
+        <label for="dataInput">改行区切りでデータを入力</label>
+        <button id="reflectButton">ルーレットに反映</button>
+        <textarea id="dataInput" rows="10"></textarea>
+        <button id="shuffleButton">入力内容をシャッフルする</button>
+    </div>
+    <div id="loadingCover" class="modal-wrapper">
+        <div class="modal-panel">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <div id="fixedPopup" class="modal-wrapper" style="display:none">
+        <div class="modal-panel">
+            <div style="background-color:white; text-align: center; padding: 0.5rem; border:double 5px black">
+                結果:<br>
+                <span id="fixedPopupContent" style="font-size: 200%;"></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

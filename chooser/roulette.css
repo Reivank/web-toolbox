@@ -1,0 +1,59 @@
+
+*{
+    margin: 0;
+    padding: 0;
+}
+body{
+    min-height: 110%;
+    overflow-y: scroll;
+}
+div#resultView{
+    width: 100%;
+    text-align: center;
+}
+div.inputPanel{
+    margin: 1rem;
+}
+div.inputPanel button{
+    padding: 0.3rem;
+}
+textarea#dataInput{
+    display: inline-block;
+    width: 100%;
+}
+
+.modal-wrapper{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.modal-wrapper .modal-panel{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+div.spinner{
+    width: 4rem;
+    height: 4rem;
+    margin: 1rem;
+    border-radius: 50%;
+    border-width: 8px;
+    border-style: solid;
+    border-color: #fff rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.12);
+    animation: spinner 1.5s infinite linear forwards;
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0);
+    }
+    100%{
+        transform: rotate(360deg);
+    }
+}
