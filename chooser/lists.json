@@ -1,5 +1,6 @@
 {
     "singleLists":{
-        "countries.json": "国名一覧"
+        "countries.json": "国名一覧",
+        "japanese-prefectures.json": "都道府県"
     }
 }
