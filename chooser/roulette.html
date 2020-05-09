@@ -37,6 +37,7 @@ window.addEventListener('load', ev=>{
     let animationActivated = false;
     let enterPressed = false;
     let mouseClicked = false;
+    let touchPressed = false;
     let lastTime = Date.now();
 
     const update = ()=>{
@@ -46,7 +47,7 @@ window.addEventListener('load', ev=>{
             lastTime = nowMillis;
             const dt = pastMillis / 1000;
 
-            const pressed = enterPressed || mouseClicked;
+            const pressed = enterPressed || mouseClicked || touchPressed;
 
             if(renderer.update(dt, pressed)){
                 requestAnimationFrame(update);
@@ -86,6 +87,19 @@ window.addEventListener('load', ev=>{
         mouseClicked = false;
         // ev.preventDefault();
     })
+    rouletteCanvas.addEventListener('touchstart', ev => {
+        touchPressed = true;
+        startAnimation();
+        ev.preventDefault();
+    })
+    rouletteCanvas.addEventListener('touchend', ev => {
+        touchPressed = false;
+        ev.preventDefault();
+    });
+    rouletteCanvas.addEventListener('touchcancel', ev => {
+        touchPressed = false;
+        ev.preventDefault();
+    });
     rouletteCanvas.addEventListener('keydown', ev=>{
         if(ev.key == 'Enter' || ev.key == ' '){
             enterPressed = true;
