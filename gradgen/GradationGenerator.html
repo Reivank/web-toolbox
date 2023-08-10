@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset='utf-8'>
+    <meta name="robots" content="none,noarchive">
+    <meta name="Googlebot" content="noarchive">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>グラデーション生成</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <script src="GradationGenerator.js"></script>
+</head>
+<body>
+    <div id="inputPanel">
+        <table id="inputTable">
+            <thead>
+                <tr>
+                    <th>位置</th>
+                    <th>色</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td><button id="appendButton">+</button></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div>
+            画像サイズ
+            <input type="number" id="widthInput">
+            x
+            <input type="number" id="heightInput">
+        </div>
+        <div>
+            <label for="angleInput">角度</label>
+            <input type="number" id="angleInput">
+        </div>
+        <button id="exportButton">エクスポート</button>
+    </div>
+    <div id="previewPanel">
+        <canvas id="previewCanvas"></canvas>
+    </div>
+    <div id="messagePanel">Loading...</div>
+</body>
+</html>
