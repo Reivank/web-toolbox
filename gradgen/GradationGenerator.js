@@ -176,6 +176,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const appendButton = requireElement(document, 'appendButton', HTMLButtonElement);
     const widthInput = requireElement(document, 'widthInput', HTMLInputElement);
     const heightInput = requireElement(document, 'heightInput', HTMLInputElement);
+    const presetSizeSelector = requireElement(document, 'presetSizeSelector', HTMLSelectElement);
     const angleInput = requireElement(document, 'angleInput', HTMLInputElement);
 
     const exportButton = requireElement(document, 'exportButton', HTMLButtonElement);
@@ -228,10 +229,21 @@ window.addEventListener('DOMContentLoaded', () => {
     widthInput.valueAsNumber = window.screen.width;
     widthInput.addEventListener('input', () => {
         dataList.performUpdate();
+        presetSizeSelector.value = '';
     });
     heightInput.valueAsNumber = window.screen.height;
     heightInput.addEventListener('input', () => {
         dataList.performUpdate();
+        presetSizeSelector.value = '';
+    });
+    presetSizeSelector.addEventListener('input', () => {
+        const value = presetSizeSelector.value;
+        const m = value.match(/^([0-9]+)x([0-9]+)$/);
+        if(m) {
+            widthInput.value = m[1];
+            heightInput.value = m[2];
+            dataList.performUpdate();
+        }
     });
     angleInput.valueAsNumber = 90;
     angleInput.addEventListener('input', () => {
